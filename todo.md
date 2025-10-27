@@ -25,6 +25,23 @@
 - [ ] Story collections/anthologies
 - [ ] Advanced filtering (by quality, date, agents used)
 
+## Phase 5: Multi-LLM Enhancement
+- [x] Backend: LLM router supporting OpenAI, Anthropic, xAI, Google, Perplexity
+- [x] Backend: Agent→LLM mapping system with defaults
+- [x] Backend: 7 agents configured (Oracle, Lumina, Gemini, Agni, Claude, Kavach, Researcher)
+- [x] Backend: 5 preset modes (Balanced, Creative, Structured, Experimental, Research-Grounded)
+- [x] Backend: Multi-LLM Z-88 engine (z88EngineMulti.ts)
+- [x] Backend: API endpoints for agent/preset configuration
+- [ ] Backend: Streaming support for real-time progress
+- [ ] UI: Simple preset modes (Balanced, Creative, Structured, Experimental)
+- [ ] UI: Advanced Options panel (collapsible)
+- [ ] UI: Per-agent LLM selection dropdowns
+- [ ] UI: Agent multiplicity controls (1-4x per agent)
+- [ ] UI: Temperature/creativity sliders per agent
+- [ ] Feature: Ensemble Mode (parallel generation + synthesis)
+- [ ] Feature: Save/load custom agent configurations
+- [ ] Integration: Switch Generate page to use multi-LLM engine
+
 ## Bug Fixes
 - [x] Fix "Story Not Found" routing issue (use ritualId instead of numeric id)
 - [x] Increase prompt character limit from 500 to 1000

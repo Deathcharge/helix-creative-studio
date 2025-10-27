@@ -1,7 +1,9 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { getAllAgentConfigs, getAllPresetModes } from "./agentConfig";
+import { testAllProviders } from "./llmRouter";
 import { z } from "zod";
 import * as db from "./db";
 import { executeCreativeRitual } from "./z88Engine";
@@ -18,6 +20,11 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  config: router({    agents: publicProcedure.query(() => getAllAgentConfigs()),
+    presets: publicProcedure.query(() => getAllPresetModes()),
+    testProviders: publicProcedure.query(async () => await testAllProviders()),
   }),
 
   stories: router({
