@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, stories, InsertStory, ucfStates, InsertUcfState, agentLogs, InsertAgentLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,59 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Story queries
+export async function createStory(story: InsertStory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(stories).values(story);
+  return result;
+}
+
+export async function getStoryById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(stories).where(eq(stories.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getStoryByRitualId(ritualId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(stories).where(eq(stories.ritualId, ritualId)).limit(1);
+  return result[0];
+}
+
+export async function getAllStories(userId?: number) {
+  const db = await getDb();
+  if (!db) return [];
+  if (userId) {
+    return await db.select().from(stories).where(eq(stories.userId, userId)).orderBy(stories.createdAt);
+  }
+  return await db.select().from(stories).orderBy(stories.createdAt);
+}
+
+// UCF state queries
+export async function createUcfState(state: InsertUcfState) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(ucfStates).values(state);
+}
+
+export async function getUcfStatesByRitualId(ritualId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(ucfStates).where(eq(ucfStates.ritualId, ritualId)).orderBy(ucfStates.step);
+}
+
+// Agent log queries
+export async function createAgentLog(log: InsertAgentLog) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(agentLogs).values(log);
+}
+
+export async function getAgentLogsByRitualId(ritualId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(agentLogs).where(eq(agentLogs.ritualId, ritualId)).orderBy(agentLogs.timestamp);
+}

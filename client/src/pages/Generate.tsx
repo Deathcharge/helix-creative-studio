@@ -1,0 +1,227 @@
+import React from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { getLoginUrl } from "@/const";
+import { trpc } from "@/lib/trpc";
+import { Sparkles, Zap, ArrowLeft, Loader2 } from "lucide-react";
+import { Link, useLocation } from "wouter";
+
+export default function Generate() {
+  const { isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
+  const [prompt, setPrompt] = React.useState("");
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const [statusMessage, setStatusMessage] = React.useState("");
+
+  const generateMutation = trpc.stories.generate.useMutation({
+    onSuccess: (data) => {
+      setIsGenerating(false);
+      setProgress(100);
+      setStatusMessage("Story complete!");
+      // Navigate to the story detail page
+      setTimeout(() => {
+        setLocation(`/story/${data.ritualId}`);
+      }, 1000);
+    },
+    onError: (error) => {
+      setIsGenerating(false);
+      setStatusMessage(`Error: ${error.message}`);
+    },
+  });
+
+  const handleGenerate = () => {
+    if (!prompt.trim() || prompt.length < 10) {
+      setStatusMessage("Please enter a prompt (at least 10 characters)");
+      return;
+    }
+
+    setIsGenerating(true);
+    setProgress(0);
+    setStatusMessage("Initializing Z-88 Ritual Engine...");
+
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 95) {
+          clearInterval(progressInterval);
+          return 95;
+        }
+        return prev + 5;
+      });
+    }, 1000);
+
+    // Update status messages based on progress
+    setTimeout(() => setStatusMessage("Phase 1: Invocation & Intent Setting"), 2000);
+    setTimeout(() => setStatusMessage("Phase 2: Agent Roll Call"), 5000);
+    setTimeout(() => setStatusMessage("Phase 3: Invoking Oracle (Plot Architect)"), 8000);
+    setTimeout(() => setStatusMessage("Phase 3: Invoking Lumina (Character Psychologist)"), 12000);
+    setTimeout(() => setStatusMessage("Phase 3: Invoking Gemini (World-Builder)"), 16000);
+    setTimeout(() => setStatusMessage("Phase 3: Invoking Agni (Creative Catalyst)"), 20000);
+    setTimeout(() => setStatusMessage("Phase 4: Synthesizing story with Manus"), 24000);
+    setTimeout(() => setStatusMessage("Phase 4: Quality assessment with Claude"), 28000);
+    setTimeout(() => setStatusMessage("Phase 4: Ethical scan with Kavach"), 32000);
+
+    generateMutation.mutate({ prompt });
+  };
+
+  const examplePrompts = [
+    "A hacker discovers their memories are corporate property and must steal them back",
+    "An AI detective investigates murders in a city where consciousness can be uploaded",
+    "A street samurai protects a child who can see through augmented reality illusions",
+    "A memory trader finds a black market chip containing the last human emotion",
+  ];
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <header className="border-b border-border/50 backdrop-blur-sm bg-background/80">
+          <div className="container flex items-center justify-between h-16">
+            <Link href="/">
+              <a className="flex items-center gap-2">
+                <Zap className="w-6 h-6 text-primary" />
+                <span className="text-xl font-bold glow-cyan">Helix Creative Studio</span>
+              </a>
+            </Link>
+          </div>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center">
+          <Card className="p-12 max-w-md text-center space-y-6">
+            <Sparkles className="w-16 h-16 text-primary mx-auto" />
+            <h2 className="text-2xl font-bold">Sign In Required</h2>
+            <p className="text-muted-foreground">
+              Please sign in to generate stories with the Z-88 Creative Engine.
+            </p>
+            <Button asChild size="lg" className="w-full">
+              <a href={getLoginUrl()}>Sign In</a>
+            </Button>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <header className="border-b border-border/50 backdrop-blur-sm bg-background/80">
+        <div className="container flex items-center justify-between h-16">
+          <Link href="/">
+            <a className="flex items-center gap-2">
+              <Zap className="w-6 h-6 text-primary" />
+              <span className="text-xl font-bold glow-cyan">Helix Creative Studio</span>
+            </a>
+          </Link>
+          <nav className="flex items-center gap-6">
+            <Link href="/generate">
+              <a className="text-sm text-primary font-medium">Generate</a>
+            </Link>
+            <Link href="/archive">
+              <a className="text-sm hover:text-primary transition-colors">Archive</a>
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 container py-12">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold">Generate Story</h1>
+              <p className="text-muted-foreground mt-1">
+                Enter a prompt to begin the Z-88 creative ritual
+              </p>
+            </div>
+          </div>
+
+          {/* Prompt Input */}
+          <Card className="p-6 space-y-4 border-glow">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Story Prompt</label>
+              <Textarea
+                placeholder="A hacker discovers their memories are corporate property..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={4}
+                disabled={isGenerating}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground">
+                {prompt.length} / 500 characters (minimum 10)
+              </p>
+            </div>
+
+            <Button
+              onClick={handleGenerate}
+              disabled={isGenerating || prompt.length < 10}
+              size="lg"
+              className="w-full"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Generate Story
+                </>
+              )}
+            </Button>
+          </Card>
+
+          {/* Progress Display */}
+          {isGenerating && (
+            <Card className="p-6 space-y-4 border-primary/50">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{statusMessage}</span>
+                  <span className="text-muted-foreground">{progress}%</span>
+                </div>
+                <Progress value={progress} className="h-2" />
+              </div>
+
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>🔮 Oracle: Designing plot structure...</p>
+                <p>🌸 Lumina: Developing character arcs...</p>
+                <p>🎭 Gemini: Building cyberpunk world...</p>
+                <p>🔥 Agni: Injecting creative twists...</p>
+              </div>
+            </Card>
+          )}
+
+          {/* Example Prompts */}
+          {!isGenerating && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Example Prompts</h3>
+              <div className="grid gap-3">
+                {examplePrompts.map((example, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setPrompt(example)}
+                    className="text-left p-4 rounded-lg border border-border/50 hover:border-primary/50 hover:bg-card/50 transition-all text-sm"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
