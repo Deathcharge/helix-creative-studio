@@ -33,14 +33,17 @@
 - [x] Backend: Multi-LLM Z-88 engine (z88EngineMulti.ts)
 - [x] Backend: API endpoints for agent/preset configuration
 - [ ] Backend: Streaming support for real-time progress
-- [ ] UI: Simple preset modes (Balanced, Creative, Structured, Experimental)
-- [ ] UI: Advanced Options panel (collapsible)
-- [ ] UI: Per-agent LLM selection dropdowns
-- [ ] UI: Agent multiplicity controls (1-4x per agent)
-- [ ] UI: Temperature/creativity sliders per agent
+- [x] UI: Simple preset modes (Balanced, Creative, Structured, Experimental)
+- [x] UI: Advanced Options panel (collapsible)
+- [x] UI: Per-agent LLM selection dropdowns
+- [x] UI: Agent multiplicity controls (1-4x per agent)
+- [x] UI: Temperature/creativity sliders per agent
+- [x] UI: AgentConfigurator component with full configuration
+- [x] UI: Real-time configuration display
+- [x] Integration: AgentConfigurator integrated into Generate page
 - [ ] Feature: Ensemble Mode (parallel generation + synthesis)
 - [ ] Feature: Save/load custom agent configurations
-- [ ] Integration: Switch Generate page to use multi-LLM engine
+- [ ] Integration: Connect Generate mutation to multi-LLM engine
 
 ## Bug Fixes
 - [x] Fix "Story Not Found" routing issue (use ritualId instead of numeric id)

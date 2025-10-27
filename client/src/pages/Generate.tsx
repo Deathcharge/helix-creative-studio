@@ -8,6 +8,7 @@ import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Sparkles, Zap, ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { AgentConfigurator, type AgentSelection } from "@/components/AgentConfigurator";
 
 export default function Generate() {
   const { isAuthenticated } = useAuth();
@@ -16,6 +17,14 @@ export default function Generate() {
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [statusMessage, setStatusMessage] = React.useState("");
+  const [generationConfig, setGenerationConfig] = React.useState<{
+    preset?: string;
+    customAgents?: AgentSelection[];
+  }>({ preset: "balanced" });
+
+  // Fetch agent and preset configurations
+  const { data: agents } = trpc.config.agents.useQuery();
+  const { data: presets } = trpc.config.presets.useQuery();
 
   const generateMutation = trpc.stories.generate.useMutation({
     onSuccess: (data) => {
@@ -167,6 +176,15 @@ export default function Generate() {
                 {prompt.length} / 1000 characters (minimum 10)
               </p>
             </div>
+
+            {/* Agent Configurator */}
+            {agents && presets && (
+              <AgentConfigurator
+                agents={agents}
+                presets={presets}
+                onConfigChange={setGenerationConfig}
+              />
+            )}
 
             <Button
               onClick={handleGenerate}
