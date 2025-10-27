@@ -22,7 +22,7 @@ export default function Generate() {
       setIsGenerating(false);
       setProgress(100);
       setStatusMessage("Story complete!");
-      // Navigate to the story detail page
+      // Navigate to the story detail page using ritualId
       setTimeout(() => {
         setLocation(`/story/${data.ritualId}`);
       }, 1000);
@@ -156,9 +156,10 @@ export default function Generate() {
                 rows={4}
                 disabled={isGenerating}
                 className="resize-none"
+                maxLength={1000}
               />
               <p className="text-xs text-muted-foreground">
-                {prompt.length} / 500 characters (minimum 10)
+                {prompt.length} / 1000 characters (minimum 10)
               </p>
             </div>
 

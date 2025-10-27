@@ -22,7 +22,7 @@ export const appRouter = router({
 
   stories: router({
     generate: protectedProcedure
-      .input(z.object({ prompt: z.string().min(10).max(500) }))
+      .input(z.object({ prompt: z.string().min(10).max(1000) }))
       .mutation(async ({ input, ctx }) => {
         const result = await executeCreativeRitual(input.prompt);
         
@@ -105,6 +105,26 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         const story = await db.getStoryById(input.id);
+        if (!story) return null;
+
+        return {
+          ...story,
+          qualityScore: story.qualityScore / 100,
+          ethicalApproval: story.ethicalApproval === 1,
+          ucfHarmony: story.ucfHarmony / 10000,
+          ucfPrana: story.ucfPrana / 10000,
+          ucfDrishti: story.ucfDrishti / 10000,
+          ucfKlesha: story.ucfKlesha / 10000,
+          ucfResilience: story.ucfResilience / 10000,
+          ucfZoom: story.ucfZoom / 10000,
+          agentContributions: JSON.parse(story.agentContributions),
+        };
+      }),
+
+    getByRitualId: publicProcedure
+      .input(z.object({ ritualId: z.string() }))
+      .query(async ({ input }) => {
+        const story = await db.getStoryByRitualId(input.ritualId);
         if (!story) return null;
 
         return {

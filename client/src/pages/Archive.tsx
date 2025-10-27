@@ -53,7 +53,7 @@ export default function Archive() {
           ) : stories && stories.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {stories.map((story) => (
-                <Link key={story.id} href={`/story/${story.id}`}>
+                <Link key={story.id} href={`/story/${story.ritualId}`}>
                   <Card className="p-6 space-y-4 hover:border-primary/50 transition-all cursor-pointer h-full">
                     <div className="space-y-2">
                       <h3 className="text-xl font-bold line-clamp-2">{story.title}</h3>

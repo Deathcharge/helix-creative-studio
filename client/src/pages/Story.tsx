@@ -19,9 +19,12 @@ import { Link, useParams } from "wouter";
 
 export default function Story() {
   const params = useParams<{ id: string }>();
-  const storyId = parseInt(params.id || "0");
+  const ritualId = params.id || "";
 
-  const { data: story, isLoading } = trpc.stories.getById.useQuery({ id: storyId });
+  const { data: story, isLoading } = trpc.stories.getByRitualId.useQuery(
+    { ritualId },
+    { enabled: !!ritualId }
+  );
   const { data: ucfTrajectory } = trpc.stories.getUcfTrajectory.useQuery(
     { ritualId: story?.ritualId || "" },
     { enabled: !!story?.ritualId }

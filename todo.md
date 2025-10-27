@@ -25,6 +25,11 @@
 - [ ] Story collections/anthologies
 - [ ] Advanced filtering (by quality, date, agents used)
 
+## Bug Fixes
+- [x] Fix "Story Not Found" routing issue (use ritualId instead of numeric id)
+- [x] Increase prompt character limit from 500 to 1000
+- [x] Add getByRitualId API endpoint for proper story routing
+
 ## Phase 4: Deployment
 - [ ] Production build optimization
 - [ ] Database migrations
