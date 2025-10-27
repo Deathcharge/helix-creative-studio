@@ -29,6 +29,7 @@
 - [x] Fix "Story Not Found" routing issue (use ritualId instead of numeric id)
 - [x] Increase prompt character limit from 500 to 1000
 - [x] Add getByRitualId API endpoint for proper story routing
+- [x] Improve loading bar accuracy (better progress distribution, goes to 98% before completion)
 
 ## Phase 4: Deployment
 - [ ] Production build optimization

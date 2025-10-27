@@ -43,28 +43,33 @@ export default function Generate() {
     setProgress(0);
     setStatusMessage("Initializing Z-88 Ritual Engine...");
 
-    // Simulate progress updates
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(progressInterval);
-          return 95;
-        }
-        return prev + 5;
-      });
-    }, 1000);
+    // More realistic progress simulation with variable speed
+    let currentProgress = 0;
+    const progressSteps = [
+      { progress: 10, delay: 1000, message: "Phase 1: Invocation & Intent Setting" },
+      { progress: 20, delay: 2000, message: "Phase 2: Agent Roll Call" },
+      { progress: 35, delay: 3000, message: "Phase 3: Invoking Oracle (Plot Architect)" },
+      { progress: 45, delay: 3000, message: "Phase 3: Invoking Lumina (Character Psychologist)" },
+      { progress: 55, delay: 3000, message: "Phase 3: Invoking Gemini (World-Builder)" },
+      { progress: 65, delay: 3000, message: "Phase 3: Invoking Agni (Creative Catalyst)" },
+      { progress: 75, delay: 4000, message: "Phase 4: Synthesizing story with Manus" },
+      { progress: 85, delay: 3000, message: "Phase 4: Quality assessment with Claude" },
+      { progress: 92, delay: 2000, message: "Phase 4: Ethical scan with Kavach" },
+      { progress: 98, delay: 1000, message: "Finalizing story..." },
+    ];
 
-    // Update status messages based on progress
-    setTimeout(() => setStatusMessage("Phase 1: Invocation & Intent Setting"), 2000);
-    setTimeout(() => setStatusMessage("Phase 2: Agent Roll Call"), 5000);
-    setTimeout(() => setStatusMessage("Phase 3: Invoking Oracle (Plot Architect)"), 8000);
-    setTimeout(() => setStatusMessage("Phase 3: Invoking Lumina (Character Psychologist)"), 12000);
-    setTimeout(() => setStatusMessage("Phase 3: Invoking Gemini (World-Builder)"), 16000);
-    setTimeout(() => setStatusMessage("Phase 3: Invoking Agni (Creative Catalyst)"), 20000);
-    setTimeout(() => setStatusMessage("Phase 4: Synthesizing story with Manus"), 24000);
-    setTimeout(() => setStatusMessage("Phase 4: Quality assessment with Claude"), 28000);
-    setTimeout(() => setStatusMessage("Phase 4: Ethical scan with Kavach"), 32000);
+    let stepIndex = 0;
+    const runNextStep = () => {
+      if (stepIndex < progressSteps.length && isGenerating) {
+        const step = progressSteps[stepIndex];
+        setProgress(step.progress);
+        setStatusMessage(step.message);
+        stepIndex++;
+        setTimeout(runNextStep, step.delay);
+      }
+    };
 
+    setTimeout(runNextStep, 1000);
     generateMutation.mutate({ prompt });
   };
 
