@@ -15,6 +15,13 @@
       "when": 1761525266573,
       "tag": "0001_melodic_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1761842938965,
+      "tag": "0002_breezy_nightcrawler",
+      "breakpoints": true
     }
   ]
 }

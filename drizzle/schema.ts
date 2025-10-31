@@ -47,6 +47,10 @@ export const stories = mysqlTable("stories", {
   agentContributions: text("agentContributions").notNull(), // JSON string of agent names
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  // Story series/chapters
+  seriesId: varchar("seriesId", { length: 64 }),
+  chapterNumber: int("chapterNumber"),
+  previousChapterId: int("previousChapterId"),
 });
 
 export type Story = typeof stories.$inferSelect;

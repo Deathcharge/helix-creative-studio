@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, stories, InsertStory, ucfStates, InsertUcfState, agentLogs, InsertAgentLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -118,6 +118,31 @@ export async function getAllStories(userId?: number) {
     return await db.select().from(stories).where(eq(stories.userId, userId)).orderBy(stories.createdAt);
   }
   return await db.select().from(stories).orderBy(stories.createdAt);
+}
+
+export async function updateStory(id: number, data: Partial<InsertStory>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(stories).set(data).where(eq(stories.id, id));
+}
+
+export async function getStoryBySeriesAndChapter(seriesId: string, chapterNumber: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(stories)
+    .where(and(
+      eq(stories.seriesId, seriesId),
+      eq(stories.chapterNumber, chapterNumber)
+    ))
+    .limit(1);
+  return result[0];
+}
+
+export async function getStoriesBySeries(seriesId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(stories)
+    .where(eq(stories.seriesId, seriesId));
 }
 
 // UCF state queries

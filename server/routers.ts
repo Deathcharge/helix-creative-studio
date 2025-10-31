@@ -7,6 +7,9 @@ import { testAllProviders } from "./llmRouter";
 import { z } from "zod";
 import * as db from "./db";
 import { executeCreativeRitual } from "./z88Engine";
+import { executeCreativeRitualMulti } from "./z88EngineMulti";
+import { enhancePrompt } from "./promptEnhancer";
+import { generateContinuationPrompt, generateSeriesId } from "./storyContinuation";
 
 export const appRouter = router({
   system: systemRouter,
@@ -22,28 +25,66 @@ export const appRouter = router({
     }),
   }),
 
-  config: router({    agents: publicProcedure.query(() => getAllAgentConfigs()),
+  config: router({
+    agents: publicProcedure.query(() => getAllAgentConfigs()),
     presets: publicProcedure.query(() => getAllPresetModes()),
     testProviders: publicProcedure.query(async () => await testAllProviders()),
   }),
 
+  prompts: router({
+    enhance: publicProcedure
+      .input(z.object({ prompt: z.string().min(1).max(500) }))
+      .mutation(async ({ input }) => {
+        const enhanced = await enhancePrompt(input.prompt);
+        return enhanced;
+      }),
+  }),
   stories: router({
     generate: protectedProcedure
-      .input(z.object({ prompt: z.string().min(10).max(1000) }))
+      .input(z.object({ 
+        prompt: z.string().min(10).max(1000),
+        preset: z.string().optional(),
+        customAgents: z.array(z.object({
+          agentId: z.string(),
+          provider: z.string().optional(),
+          temperature: z.number().optional(),
+          multiplicity: z.number().optional(),
+          enabled: z.boolean(),
+        })).optional(),
+      }))
       .mutation(async ({ input, ctx }) => {
-        const result = await executeCreativeRitual(input.prompt);
+        // Use multi-LLM engine if preset or customAgents provided
+        const useMultiLLM = input.preset || input.customAgents;
+        
+        const result = useMultiLLM 
+          ? await executeCreativeRitualMulti(input.prompt, {
+              preset: input.preset,
+              customAgents: input.customAgents?.filter(a => a.enabled).map(a => ({
+                agentId: a.agentId,
+                provider: a.provider as any,
+                temperature: a.temperature,
+                multiplicity: a.multiplicity,
+              })),
+            })
+          : await executeCreativeRitual(input.prompt);
         
         if (!result.success) {
-          throw new Error(result.error_message || "Story generation failed");
+          const errorMsg = 'error' in result ? result.error : "Story generation failed";
+          throw new Error(errorMsg || "Story generation failed");
         }
 
+        // Extract data safely from either engine type
+        const ritualId = 'ritualId' in result ? result.ritualId : result.metadata.ritualId;
+        const title = 'title' in result ? result.title : result.metadata.title;
+        const storyText = 'storyText' in result ? result.storyText : (result as any).story_text;
+        
         // Store story in database
         const storyData = {
           userId: ctx.user.id,
-          title: result.metadata.title,
-          prompt: result.metadata.prompt,
-          content: result.story_text,
-          ritualId: result.metadata.ritualId,
+          title,
+          prompt: input.prompt,
+          content: storyText,
+          ritualId,
           wordCount: result.metadata.wordCount,
           qualityScore: Math.round(result.metadata.qualityScore * 100),
           ethicalApproval: result.metadata.ethicalApproval ? 1 : 0,
@@ -58,8 +99,9 @@ export const appRouter = router({
 
         await db.createStory(storyData);
 
-        // Store UCF trajectory
-        for (const state of result.ucf_trajectory) {
+        // Store UCF trajectory (only available from old engine)
+        if ('ucf_trajectory' in result && result.ucf_trajectory) {
+          for (const state of result.ucf_trajectory) {
           await db.createUcfState({
             ritualId: result.metadata.ritualId,
             step: state.step,
@@ -70,10 +112,12 @@ export const appRouter = router({
             resilience: Math.round(state.resilience * 10000),
             zoom: Math.round(state.zoom * 10000),
           });
+          }
         }
 
-        // Store agent logs
-        for (const output of result.agent_outputs) {
+        // Store agent logs (only available from old engine)
+        if ('agent_outputs' in result && result.agent_outputs) {
+          for (const output of result.agent_outputs) {
           await db.createAgentLog({
             ritualId: result.metadata.ritualId,
             agentName: output.agentName,
@@ -81,12 +125,13 @@ export const appRouter = router({
             role: output.role,
             content: output.content,
           });
+          }
         }
 
         return {
-          ritualId: result.metadata.ritualId,
-          title: result.metadata.title,
-          storyText: result.story_text,
+          ritualId,
+          title,
+          storyText,
           metadata: result.metadata,
         };
       }),
@@ -133,19 +178,60 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const story = await db.getStoryByRitualId(input.ritualId);
         if (!story) return null;
+        
+        // Check if this story has a next chapter
+        const nextChapter = story.seriesId && story.chapterNumber
+          ? await db.getStoryBySeriesAndChapter(story.seriesId, story.chapterNumber + 1)
+          : null;
+        
+        return { ...story, hasNextChapter: !!nextChapter };
+      }),
+
+    continueStory: protectedProcedure
+      .input(z.object({ 
+        previousStoryId: z.number(),
+        userPrompt: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const previousStory = await db.getStoryById(input.previousStoryId);
+        if (!previousStory) {
+          throw new Error("Previous story not found");
+        }
+
+        // Generate series ID if this is the first continuation
+        const seriesId = previousStory.seriesId || generateSeriesId();
+        const chapterNumber = (previousStory.chapterNumber || 1) + 1;
+
+        // Update previous story with series info if needed
+        if (!previousStory.seriesId) {
+          await db.updateStory(previousStory.id, {
+            seriesId,
+            chapterNumber: 1,
+          });
+        }
+
+        // Generate continuation prompt
+        const continuationPrompt = await generateContinuationPrompt({
+          previousStory: {
+            title: previousStory.title,
+            content: previousStory.content,
+            chapterNumber: previousStory.chapterNumber || 1,
+          },
+          userPrompt: input.userPrompt,
+        });
 
         return {
-          ...story,
-          qualityScore: story.qualityScore / 100,
-          ethicalApproval: story.ethicalApproval === 1,
-          ucfHarmony: story.ucfHarmony / 10000,
-          ucfPrana: story.ucfPrana / 10000,
-          ucfDrishti: story.ucfDrishti / 10000,
-          ucfKlesha: story.ucfKlesha / 10000,
-          ucfResilience: story.ucfResilience / 10000,
-          ucfZoom: story.ucfZoom / 10000,
-          agentContributions: JSON.parse(story.agentContributions),
+          prompt: continuationPrompt,
+          seriesId,
+          chapterNumber,
+          previousChapterId: previousStory.id,
         };
+      }),
+
+    getSeriesStories: publicProcedure
+      .input(z.object({ seriesId: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getStoriesBySeries(input.seriesId);
       }),
 
     getUcfTrajectory: publicProcedure

@@ -15,16 +15,25 @@ import {
   Download,
   Share2
 } from "lucide-react";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Story() {
   const params = useParams<{ id: string }>();
   const ritualId = params.id || "";
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
 
   const { data: story, isLoading } = trpc.stories.getByRitualId.useQuery(
     { ritualId },
     { enabled: !!ritualId }
   );
+  
+  const continueStoryMutation = trpc.stories.continueStory.useMutation({
+    onSuccess: (data) => {
+      setLocation(`/generate?prompt=${encodeURIComponent(data.prompt)}&seriesId=${data.seriesId}&chapterNumber=${data.chapterNumber}&previousChapterId=${data.previousChapterId}`);
+    },
+  });
   const { data: ucfTrajectory } = trpc.stories.getUcfTrajectory.useQuery(
     { ritualId: story?.ritualId || "" },
     { enabled: !!story?.ritualId }
@@ -140,6 +149,28 @@ export default function Story() {
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </Button>
+              {user && story.id && (
+                <Button
+                  onClick={() => {
+                    continueStoryMutation.mutate({ previousStoryId: story.id });
+                  }}
+                  disabled={continueStoryMutation.isPending}
+                  className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30"
+                  size="sm"
+                >
+                  {continueStoryMutation.isPending ? (
+                    <>
+                      <Brain className="w-4 h-4 mr-2 animate-pulse" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 mr-2" />
+                      Continue Story
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
 

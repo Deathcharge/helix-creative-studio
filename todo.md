@@ -43,7 +43,14 @@
 - [x] Integration: AgentConfigurator integrated into Generate page
 - [ ] Feature: Ensemble Mode (parallel generation + synthesis)
 - [ ] Feature: Save/load custom agent configurations
-- [ ] Integration: Connect Generate mutation to multi-LLM engine
+- [x] Integration: Connect Generate mutation to multi-LLM engine
+- [x] Feature: Auto-condense/enhance prompts for better story generation
+- [x] Feature: Continuous story chapters (reference archived stories)
+- [x] Feature: Story series/collections linking
+- [x] Feature: "Continue Story" button on story detail pages
+- [x] Database: Series support (seriesId, chapterNumber, previousChapterId)
+- [x] Backend: Story continuation prompt generation
+- [x] Bug: Loading bar not showing during generation (fixed with multi-LLM integration)
 
 ## Bug Fixes
 - [x] Fix "Story Not Found" routing issue (use ritualId instead of numeric id)

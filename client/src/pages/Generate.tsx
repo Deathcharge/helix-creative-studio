@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Sparkles, Zap, ArrowLeft, Loader2 } from "lucide-react";
+import { Sparkles, Zap, ArrowLeft, Loader2, Wand2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { AgentConfigurator, type AgentSelection } from "@/components/AgentConfigurator";
 
@@ -17,6 +17,19 @@ export default function Generate() {
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [statusMessage, setStatusMessage] = React.useState("");
+  const [isEnhancing, setIsEnhancing] = React.useState(false);
+  const [enhancedData, setEnhancedData] = React.useState<any>(null);
+
+  const enhanceMutation = trpc.prompts.enhance.useMutation({
+    onSuccess: (data) => {
+      setEnhancedData(data);
+      setPrompt(data.enhanced);
+      setIsEnhancing(false);
+    },
+    onError: () => {
+      setIsEnhancing(false);
+    },
+  });
   const [generationConfig, setGenerationConfig] = React.useState<{
     preset?: string;
     customAgents?: AgentSelection[];
@@ -79,7 +92,11 @@ export default function Generate() {
     };
 
     setTimeout(runNextStep, 1000);
-    generateMutation.mutate({ prompt });
+    generateMutation.mutate({ 
+      prompt,
+      preset: generationConfig.preset,
+      customAgents: generationConfig.customAgents,
+    });
   };
 
   const examplePrompts = [
@@ -172,9 +189,49 @@ export default function Generate() {
                 className="resize-none"
                 maxLength={1000}
               />
-              <p className="text-xs text-muted-foreground">
-                {prompt.length} / 1000 characters (minimum 10)
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {prompt.length} / 1000 characters (minimum 10)
+                </p>
+                {prompt.length > 0 && prompt.length < 100 && (
+                  <button
+                    onClick={() => {
+                      setIsEnhancing(true);
+                      enhanceMutation.mutate({ prompt });
+                    }}
+                    disabled={isEnhancing || isGenerating}
+                    className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+                  >
+                    {isEnhancing ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Enhancing...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="w-3 h-3" />
+                        Auto-enhance prompt
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              {enhancedData && (
+                <div className="text-xs p-3 bg-primary/5 border border-primary/20 rounded space-y-1">
+                  <div className="flex items-center gap-2 text-primary font-medium">
+                    <Sparkles className="w-3 h-3" />
+                    Enhanced Prompt Applied
+                  </div>
+                  <div className="text-muted-foreground">
+                    Genre: {enhancedData.detectedGenre} • Tone: {enhancedData.detectedTone}
+                  </div>
+                  {enhancedData.suggestedThemes.length > 0 && (
+                    <div className="text-muted-foreground">
+                      Themes: {enhancedData.suggestedThemes.join(", ")}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Agent Configurator */}
