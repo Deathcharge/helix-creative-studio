@@ -6,6 +6,8 @@ import { getAllAgentConfigs, getAllPresetModes } from "./agentConfig";
 import { testAllProviders } from "./llmRouter";
 import { z } from "zod";
 import * as db from "./db";
+import * as dbQoL from "./dbQoL";
+import { TRPCError } from "@trpc/server";
 import { executeCreativeRitual } from "./z88Engine";
 import { executeCreativeRitualMulti } from "./z88EngineMulti";
 import { enhancePrompt } from "./promptEnhancer";

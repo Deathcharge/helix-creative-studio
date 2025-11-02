@@ -51,6 +51,11 @@ export const stories = mysqlTable("stories", {
   seriesId: varchar("seriesId", { length: 64 }),
   chapterNumber: int("chapterNumber"),
   previousChapterId: int("previousChapterId"),
+  // QoL features
+  collectionId: int("collectionId"),
+  tags: text("tags"), // JSON array of tag strings
+  isFavorite: int("isFavorite").notNull().default(0), // 1 = true, 0 = false
+  deletedAt: timestamp("deletedAt"),
 });
 
 export type Story = typeof stories.$inferSelect;
@@ -90,3 +95,19 @@ export const agentLogs = mysqlTable("agentLogs", {
 
 export type AgentLog = typeof agentLogs.$inferSelect;
 export type InsertAgentLog = typeof agentLogs.$inferInsert;
+
+/**
+ * Story collections/folders
+ */
+export const collections = mysqlTable("collections", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  color: varchar("color", { length: 7 }), // Hex color code
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Collection = typeof collections.$inferSelect;
+export type InsertCollection = typeof collections.$inferInsert;

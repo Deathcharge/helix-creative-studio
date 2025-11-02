@@ -22,6 +22,13 @@
       "when": 1761842938965,
       "tag": "0002_breezy_nightcrawler",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1761954041660,
+      "tag": "0003_strange_vermin",
+      "breakpoints": true
     }
   ]
 }
