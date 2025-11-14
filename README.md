@@ -25,3 +25,7 @@ All code within this repository adheres to the Tony Accords:
 - **Humility:** Acknowledge limitations and seek continuous learning.
 
 *Tat Tvam Asi - That Thou Art*
+
+## 🌀 Part of Helix Collective v16.9
+
+This repository is part of the unified Helix Collective. See [CONSOLIDATION_LINKS.md](./CONSOLIDATION_LINKS.md) for ecosystem resources.
